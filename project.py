@@ -13,7 +13,7 @@ df = pd.read_csv("source/HepatitisCdata.csv", index_col=0)
 print(f"Unique values from target variable Category: {df.Category.unique()}")
 
 #handling categorical values
-df['Category'] = df['Category'].map({'0=Blood Donor': 0, '0s=suspect Blood Donor': 0, "1=Hepatitis" : 1, "2=Fibrosis" : 1, "3=Cirrhosis" : 1})
+df['Category'] = df['Category'].map({'0=Blood Donor': -1, '0s=suspect Blood Donor': -1, "1=Hepatitis" : 1, "2=Fibrosis" : 1, "3=Cirrhosis" : 1})
 #print(df.head())
 df = pd.get_dummies(df, columns=['Sex'], drop_first=True, prefix='Sex')
 df = df.rename(columns={'Sex_m': 'Sex_Male'})
