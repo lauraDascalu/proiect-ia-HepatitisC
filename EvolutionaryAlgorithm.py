@@ -70,7 +70,21 @@ class Crossover:
 class Mutation:
     @staticmethod
     def swap(child, rate):
-        pass
+        
+        if random.random() < rate:
+            
+            if child.no_genes < 2:
+                return 
+
+            idx1, idx2 = random.sample(range(child.no_genes), 2)
+            
+            #swap the values between the genes
+            child.genes[idx1], child.genes[idx2] = child.genes[idx2], child.genes[idx1]
+
+
+
+
+
 
 class EvolutionaryAlgorithm:
     def solve(self, problem, population_size, max_generations, crossover_rate, mutation_rate):
