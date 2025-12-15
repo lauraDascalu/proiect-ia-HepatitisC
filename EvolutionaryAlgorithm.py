@@ -9,7 +9,6 @@ def linear_kernel(X, Z=None):
     else:
         return np.dot(X, Z.T)
 
-
 def adjustment_algorithm(alpha_genes, y_train, C):
    
     alpha = np.array(alpha_genes)
@@ -51,9 +50,6 @@ def adjustment_algorithm(alpha_genes, y_train, C):
     
     return alpha.tolist()
 
-
-
-
 class IOptimizationProblem:
     def compute_fitness(self, chromosome):
         raise NotImplementedError("This method needs to be implemented by a subclass")
@@ -61,16 +57,31 @@ class IOptimizationProblem:
     def make_chromosome(self):
         raise NotImplementedError("This method needs to be implemented by a subclass")
 
-
 class SVM_GATE(IOptimizationProblem):
+    def __init__(self, X, y, C, kernel_matrix):
+        self.X = X
+        self.y = y
+        self.C = C
+        self.K = kernel_matrix
+        self.L = len(y) 
+        self.min_vals = [0.0] * self.L #constraint: alpha>=0
+        self.max_vals = [self.C] * self.L #contraint: alpha <=C
+
     def make_chromosome(self):
-        pass
+        chromosome = Chromosome(self.L, self.min_vals, self.max_vals)
+        #initial adjustment
+        chromosome.genes=adjustment_algorithm(chromosome.genes, self.y, self.C)
+        return chromosome
 
+    # F(alpha)=-sum(alpha_i)+1/2*sum_sum(alpha_i*alpha_j*y_i*y_j*<x_i, x_j>), i=1...l, j=1...j
     def compute_fitness(self, chromosome):
-        pass
+        alpha_adjusted = adjustment_algorithm(chromosome.genes, self.y, self.C)
+        chromosome.genes = alpha_adjusted
+        alpha = np.array(alpha_adjusted)
 
-
-
+        F_alpha= -np.sum(alpha) + 0.5* np.dot((alpha * self.y), np.dot(self.K, (alpha*self.y)))
+        chromosome_fitness=-F_alpha
+    
 
 class Chromosome:
     def __init__(self, no_genes, min_values, max_values):
@@ -98,7 +109,7 @@ class Chromosome:
         self.max_values = list(other.max_values)
         self.fitness = other.fitness
 
-
+#elitism selection
 class Selection:
     @staticmethod
     def get_best(population):
@@ -136,10 +147,6 @@ class Mutation:
             child.genes[idx1], child.genes[idx2] = child.genes[idx2], child.genes[idx1]
 
 
-
-
-
-
 class EvolutionaryAlgorithm:
     def solve(self, problem, population_size, max_generations, crossover_rate, mutation_rate):
 
@@ -152,13 +159,16 @@ class EvolutionaryAlgorithm:
 
             for i in range(1, population_size):
                 pass
-                # # selectare 2 parinti: Selection.tournament
+                # elitism selection
                 # mother = Selection.tournament(population)
                 # father = Selection.tournament(population)
-                # # generarea unui copil prin aplicare crossover: Crossover.arithmetic
+                
+                # arithmetic crossover 
                 # child = Crossover.arithmetic(mother, father, crossover_rate)
-                # # aplicare mutatie asupra copilului: Mutation.reset
+                
+                #  swap mutation
                 # Mutation.reset(child, mutation_rate)
+
                 # # calculare fitness pentru copil: compute_fitness din problema p
                 # problem.compute_fitness(child)
                 # # introducere copil in new_population
