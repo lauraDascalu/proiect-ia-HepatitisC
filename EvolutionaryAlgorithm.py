@@ -1,6 +1,58 @@
 import random
 import math
 import pandas as pd
+import numpy as np
+
+def linear_kernel(X, Z=None):
+    if Z is None:
+        return np.dot(X, X.T)
+    else:
+        return np.dot(X, Z.T)
+
+
+def adjustment_algorithm(alpha_genes, y_train, C):
+   
+    alpha = np.array(alpha_genes)
+    L = len(y_train)
+    
+    s = np.sum(alpha * y_train)
+
+    
+    while s!=0:
+    
+        s_plus = np.sum(alpha[y_train == 1] * y_train[y_train == 1])
+        s_minus = np.sum(alpha[y_train == -1] * y_train[y_train == -1])
+        
+        
+        if s_plus > s_minus:
+
+            indices_plus = np.where(y_train == 1)[0]
+            if len(indices_plus) > 0:
+                k = random.choice(indices_plus)
+        else: 
+            indices_minus = np.where(y_train == -1)[0]
+            if len(indices_minus) > 0:
+                k = random.choice(indices_minus)
+        
+        
+        if alpha[k] > s: 
+            
+            alpha[k] = alpha[k] - s
+       
+        else: 
+           
+            alpha[k] = 0.0
+
+    
+        s = np.sum(alpha * y_train)
+
+   
+    alpha = np.clip(alpha, 0, C)
+    
+    return alpha.tolist()
+
+
+
 
 class IOptimizationProblem:
     def compute_fitness(self, chromosome):
@@ -16,6 +68,8 @@ class SVM_GATE(IOptimizationProblem):
 
     def compute_fitness(self, chromosome):
         pass
+
+
 
 
 class Chromosome:
