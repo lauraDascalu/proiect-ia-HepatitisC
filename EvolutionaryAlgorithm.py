@@ -162,7 +162,7 @@ class SVM_GATE(IOptimizationProblem):
         alpha = np.array(alpha_adjusted)
 
         F_alpha= -np.sum(alpha) + 0.5* np.dot((alpha * self.y), np.dot(self.K, (alpha*self.y)))
-        chromosome_fitness=-F_alpha
+        chromosome.fitness=-F_alpha
     
 class Chromosome:
     def __init__(self, no_genes, min_values, max_values):
