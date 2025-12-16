@@ -103,7 +103,7 @@ def adjustment_algorithm(alpha_genes, y_train, C):
     return alpha.tolist()
 
 def compute_bias(alpha, X, y, C, kernel_func):
-    SV_indices = np.where((alpha > 0) & (alpha <= C))[0]
+    SV_indices = np.where((alpha > 0) & (alpha < C))[0]
 
     if len(SV_indices) == 0:
         return 0.0, 0
@@ -115,7 +115,7 @@ def compute_bias(alpha, X, y, C, kernel_func):
     sum= np.dot(K, alpha_y)
     y_SV= y[SV_indices]
     sum_SV=sum[SV_indices]
-    b=y_SV- sum
+    b=y_SV- sum_SV
     b=np.mean(b)
 
     return b, len(SV_indices)
@@ -162,7 +162,7 @@ class SVM_GATE(IOptimizationProblem):
         alpha = np.array(alpha_adjusted)
 
         F_alpha= -np.sum(alpha) + 0.5* np.dot((alpha * self.y), np.dot(self.K, (alpha*self.y)))
-        chromosome.fitness=-F_alpha
+        chromosome.fitness = -F_alpha
     
 class Chromosome:
     def __init__(self, no_genes, min_values, max_values):
@@ -238,7 +238,6 @@ class EvolutionaryAlgorithm:
             new_population = [Selection.get_best(population)]
 
             for i in range(1, population_size):
-                pass
                 # elitism selection
                 mother = Selection.get_best(population)
                 father = Selection.get_best(population)
@@ -280,12 +279,14 @@ if __name__ == "__main__":
     X_test = X_test.values
     y_test = y_test = y_test['Category'].values.ravel()
 
-    K_matrix = linear_kernel(X_train)
+    #linear kernel
+    K_matrix_lin = linear_kernel(X_train)
+    
     C_CANDIDATES = [0.1, 1.0, 5.0, 10.0, 50.0]
     #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, n_splits=5)
     #C_OPTIMAL=0.1
 
-    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix)
+    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_lin)
     ea = EvolutionaryAlgorithm()
 
     solution = ea.solve(svm_problem, POP_SIZE, MAX_GEN, C_RATE, M_RATE) 
@@ -297,6 +298,16 @@ if __name__ == "__main__":
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, linear_kernel)
     accuracy_linear=accuracy_score(y_test, y_pred)
     print(f'Accuracy_linear: {accuracy_linear:.4f}')
+
+    #gaussian kernel
+    K_matrix_gauss = gaussian_kernel(X_train)
+    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_gauss)
+    ea = EvolutionaryAlgorithm()
+
+    solution = ea.solve(svm_problem, POP_SIZE, MAX_GEN, C_RATE, M_RATE) 
+    
+    alpha_i=np.array(solution.genes)
+    w=solution.fitness
 
     b, sv_count= compute_bias(alpha_i, X_train, y_train, C, gaussian_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, gaussian_kernel)
