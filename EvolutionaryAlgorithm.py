@@ -3,6 +3,48 @@ import math
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import KFold
+
+def cross_validate_c(X_train, y_train, C_values, n_splits=5, ea_params=None):
+    if ea_params is None:
+        ea_params = {'POP_SIZE': 50, 'MAX_GEN': 30, 'C_RATE': 0.9, 'M_RATE': 0.1}
+
+    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
+    best_c = None
+    max_avg_accuracy = -1.0
+
+    for C_val in C_values:
+        fold_accuracies = []
+        for train_index, val_index in kf.split(X_train):
+            X_fold_train, X_fold_val = X_train[train_index], X_train[val_index]
+            y_fold_train, y_fold_val = y_train[train_index], y_train[val_index]
+
+            K_matrix_fold = gaussian_kernel(X_fold_train)
+            svm_problem = SVM_GATE(X_fold_train, y_fold_train, C_val, K_matrix_fold)
+            ea = EvolutionaryAlgorithm()
+            solution = ea.solve(
+                svm_problem, 
+                ea_params['POP_SIZE'], 
+                ea_params['MAX_GEN'], 
+                ea_params['C_RATE'], 
+                ea_params['M_RATE']
+            )
+
+            alpha_i = np.array(solution.genes)
+            b, _ = compute_bias(alpha_i, X_fold_train, y_fold_train, C_val, gaussian_kernel)
+            y_pred = decision_function(X_fold_val, X_fold_train, y_fold_train, alpha_i, b, gaussian_kernel)
+            acc = accuracy_score(y_fold_val, y_pred)
+            fold_accuracies.append(acc)
+
+        avg_accuracy = np.mean(fold_accuracies)
+        print(f"C={C_val:<5}: Acuratețe medie CV = {avg_accuracy:.4f} (+/- {np.std(fold_accuracies):.4f})")
+    
+        if avg_accuracy > max_avg_accuracy:
+            max_avg_accuracy = avg_accuracy
+            best_c = C_val
+
+    print(f"\nCea mai bună valoare C selectată prin CV: {best_c} (Acuratețe: {max_avg_accuracy:.4f})")
+    return best_c
 
 def linear_kernel(X, Z=None):
     if Z is None:
@@ -10,7 +52,6 @@ def linear_kernel(X, Z=None):
     else:
         return np.dot(X, Z.T)
     
-
 def gaussian_kernel(X, Z=None, gamma=None):
     
     if gamma is None:
@@ -26,20 +67,15 @@ def gaussian_kernel(X, Z=None, gamma=None):
         sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * np.dot(X, Z.T) + np.sum(Z**2, axis=1) 
         return np.exp(-gamma * sq_dists)
 
-
 def adjustment_algorithm(alpha_genes, y_train, C):
    
     alpha = np.array(alpha_genes)
     L = len(y_train)
-    
     s = np.sum(alpha * y_train)
 
-    
-    while s!=0:
-    
+    while abs(s) > 1e-6:
         s_plus = np.sum(alpha[y_train == 1] * y_train[y_train == 1])
         s_minus = np.sum(alpha[y_train == -1] * y_train[y_train == -1])
-        
         
         if s_plus > s_minus:
 
@@ -51,23 +87,18 @@ def adjustment_algorithm(alpha_genes, y_train, C):
             if len(indices_minus) > 0:
                 k = random.choice(indices_minus)
         
-        
         if alpha[k] > s: 
             
             alpha[k] = alpha[k] - s
-       
         else: 
            
             alpha[k] = 0.0
 
-    
         s = np.sum(alpha * y_train)
 
-   
     alpha = np.clip(alpha, 0, C)
     
     return alpha.tolist()
-
 
 def compute_bias(alpha, X, y, C, kernel_func):
     SV_indices = np.where((alpha > 0) & (alpha <= C))[0]
@@ -87,7 +118,6 @@ def compute_bias(alpha, X, y, C, kernel_func):
 
     return b, len(SV_indices)
 
-
 #f(x)=sum(alpha_y * K(xi, x))+b
 def decision_function(X_test, X_train, y_train, alpha, b, kernel_func):
     
@@ -96,7 +126,6 @@ def decision_function(X_test, X_train, y_train, alpha, b, kernel_func):
 
     f=np.dot(K, alpha_y) + b
     return np.sign(f)
-
 
 class IOptimizationProblem:
     def compute_fitness(self, chromosome):
@@ -130,7 +159,6 @@ class SVM_GATE(IOptimizationProblem):
         F_alpha= -np.sum(alpha) + 0.5* np.dot((alpha * self.y), np.dot(self.K, (alpha*self.y)))
         chromosome_fitness=-F_alpha
     
-
 class Chromosome:
     def __init__(self, no_genes, min_values, max_values):
         self.no_genes = no_genes
@@ -194,7 +222,6 @@ class Mutation:
             #swap the values between the genes
             child.genes[idx1], child.genes[idx2] = child.genes[idx2], child.genes[idx1]
 
-
 class EvolutionaryAlgorithm:
     def solve(self, problem, population_size, max_generations, crossover_rate, mutation_rate):
 
@@ -226,7 +253,6 @@ class EvolutionaryAlgorithm:
 
         return Selection.get_best(population)
 
-
 if __name__ == "__main__":
 
     POP_SIZE = 50       
@@ -234,7 +260,8 @@ if __name__ == "__main__":
     C_RATE = 0.9       
     M_RATE = 0.1  
 
-    C=1.0 #maybe tuned with k-fold crossover
+    #C=1.0 #inital value
+    C=0.1
 
     df = pd.read_csv("source/train_data.csv", index_col=0)
     X_train = df.drop(columns=['Category'])
@@ -249,6 +276,10 @@ if __name__ == "__main__":
     y_test = y_test = y_test['Category'].values.ravel()
 
     K_matrix = linear_kernel(X_train)
+    C_CANDIDATES = [0.1, 1.0, 5.0, 10.0, 50.0]
+    #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, n_splits=5)
+    #C_OPTIMAL=0.1
+
     svm_problem = SVM_GATE(X_train, y_train, C, K_matrix)
     ea = EvolutionaryAlgorithm()
 
