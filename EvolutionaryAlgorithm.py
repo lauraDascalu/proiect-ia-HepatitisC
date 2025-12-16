@@ -109,7 +109,12 @@ def compute_bias(alpha, X, y, C, kernel_func):
         return 0.0, 0
     
     #b=1/l sum(y_i-sum(y_i*alpha_j*<xi,xj>))
-    K=kernel_func(X,X)
+
+    if kernel_func==gaussian_kernel:
+        K=kernel_func(X, X, GAMMA)
+    else:
+        K=kernel_func(X, X)
+
     alpha_y=alpha*y
 
     sum= np.dot(K, alpha_y)
