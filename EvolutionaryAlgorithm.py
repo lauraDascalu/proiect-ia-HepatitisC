@@ -5,6 +5,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold
 
+GAMMA=0.001
+
 def cross_validate_c(X_train, y_train, C_values, n_splits=5, ea_params=None):
     if ea_params is None:
         ea_params = {'POP_SIZE': 50, 'MAX_GEN': 30, 'C_RATE': 0.9, 'M_RATE': 0.1}
@@ -121,7 +123,10 @@ def compute_bias(alpha, X, y, C, kernel_func):
 #f(x)=sum(alpha_y * K(xi, x))+b
 def decision_function(X_test, X_train, y_train, alpha, b, kernel_func):
     
-    K=kernel_func(X_test, X_train)
+    if kernel_func==gaussian_kernel:
+        K=kernel_func(X_test, X_train, GAMMA)
+    else:
+        K=kernel_func(X_test, X_train)
     alpha_y=alpha*y_train
 
     f=np.dot(K, alpha_y) + b
@@ -290,8 +295,12 @@ if __name__ == "__main__":
 
     b, sv_count= compute_bias(alpha_i, X_train, y_train, C, linear_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, linear_kernel)
-   
-    accuracy=accuracy_score(y_test, y_pred)
-    print(f'Accuracy: {accuracy:.4f}')
+    accuracy_linear=accuracy_score(y_test, y_pred)
+    print(f'Accuracy_linear: {accuracy_linear:.4f}')
+
+    b, sv_count= compute_bias(alpha_i, X_train, y_train, C, gaussian_kernel)
+    y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, gaussian_kernel)
+    accuracy_gauss=accuracy_score(y_test, y_pred)
+    print(f'Accuracy_gaussian: {accuracy_gauss:.4f}')
 
    
