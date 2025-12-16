@@ -81,3 +81,4 @@ df_train_scaled.to_csv("source/train_data.csv", index=False)
 # print(df_test_scaled.Category.unique())
 
 X_test_scaled.to_csv("source/test_data.csv", index=False)
+y_test.to_csv("source/test_y.csv", index=False)

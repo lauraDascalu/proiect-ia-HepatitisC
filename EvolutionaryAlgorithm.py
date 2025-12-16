@@ -2,6 +2,7 @@ import random
 import math
 import pandas as pd
 import numpy as np
+from sklearn.metrics import accuracy_score
 
 def linear_kernel(X, Z=None):
     if Z is None:
@@ -49,6 +50,7 @@ def adjustment_algorithm(alpha_genes, y_train, C):
     alpha = np.clip(alpha, 0, C)
     
     return alpha.tolist()
+
 
 class IOptimizationProblem:
     def compute_fitness(self, chromosome):
@@ -160,21 +162,21 @@ class EvolutionaryAlgorithm:
             for i in range(1, population_size):
                 pass
                 # elitism selection
-                # mother = Selection.tournament(population)
-                # father = Selection.tournament(population)
+                mother = Selection.get_best(population)
+                father = Selection.get_best(population)
                 
                 # arithmetic crossover 
-                # child = Crossover.arithmetic(mother, father, crossover_rate)
+                child = Crossover.arithmetic(mother, father, crossover_rate)
                 
                 #  swap mutation
-                # Mutation.reset(child, mutation_rate)
+                Mutation.swap(child, mutation_rate)
 
-                # # calculare fitness pentru copil: compute_fitness din problema p
-                # problem.compute_fitness(child)
-                # # introducere copil in new_population
-                # new_population.append(child)
+                problem.compute_fitness(child)
 
-            #population = new_population
+                # introducere copil in new_population
+                new_population.append(child)
+
+            population = new_population
 
         return Selection.get_best(population)
 
@@ -186,11 +188,27 @@ if __name__ == "__main__":
     C_RATE = 0.9       
     M_RATE = 0.1  
 
+    C=1.0 #maybe tuned with k-fold crossover
+
     df = pd.read_csv("source/train_data.csv", index_col=0)
     X_train = df.drop(columns=['Category'])
     y_train = df['Category']   
-    l=len(y_train)   
+    X_train = X_train.values
+    y_train = y_train.values
+    #l=len(y_train)   
 
+    X_test= pd.read_csv("source/test_data.csv", index_col=0)
+    y_test=pd.read_csv("source/test_y.csv")
+    X_test = X_test.values
+    y_test = y_test = y_test['Category'].values.ravel()
+
+    K_matrix = linear_kernel(X_train)
+    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix)
     ea = EvolutionaryAlgorithm()
+
+    solution = ea.solve(svm_problem, POP_SIZE, MAX_GEN, C_RATE, M_RATE) 
+    
+
+   
 
    
