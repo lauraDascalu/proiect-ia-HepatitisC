@@ -28,8 +28,8 @@ print(f"Missing values count: {df.isna().sum()}")
 #correlation matrix
 fig, ax = plt.subplots(figsize=(10,8))
 sns.heatmap(df.corr(), annot=True, fmt='.1f', cmap="Blues_r", cbar=False, linewidths=0.5, linecolor='grey');
-# plt.title('Correlation Matrix')
-#plt.show()
+plt.title('Correlation Matrix')
+plt.show()
 
 correlation_matrix = df.corr()
 target_correlations = correlation_matrix['Category'].drop('Category')
@@ -46,8 +46,8 @@ df_features = df.drop(columns=['Category'])
 feature_correlation_matrix = df_features.corr()
 fig, ax = plt.subplots(figsize=(12, 10))
 sns.heatmap(feature_correlation_matrix,annot=True, fmt='.1f', cmap='viridis', cbar=False,linewidths=0.5,linecolor='grey')
-# plt.title('Correlation in between features')
-# plt.show()
+plt.title('Correlation in between features')
+plt.show()
 stacked_correlations = feature_correlation_matrix.unstack().sort_values(ascending=False)
 multicol_threshold=0.8
 too_correlated_vars = stacked_correlations[abs(stacked_correlations) >= multicol_threshold].sort_values(ascending=False)

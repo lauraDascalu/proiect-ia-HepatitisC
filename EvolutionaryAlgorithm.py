@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
     #linear kernel
     K_matrix_lin = linear_kernel(X_train)
-    #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
+    C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
     C1=0.1
 
     svm_problem = SVM_GATE(X_train, y_train, C1, K_matrix_lin)
@@ -306,12 +306,14 @@ if __name__ == "__main__":
     b, sv_count= compute_bias(alpha_i, X_train, y_train, C1, linear_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, linear_kernel)
     accuracy_linear=accuracy_score(y_test, y_pred)
+    print(f'C: {C1}')
     print(f'Accuracy_linear: {accuracy_linear:.4f}')
+    print(f'Number of support vectors: {sv_count}')
 
 
     #gaussian kernel
     K_matrix_gauss = gaussian_kernel(X_train)
-    #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
+    C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
     C2=0.5
     
     svm_problem = SVM_GATE(X_train, y_train, C2, K_matrix_gauss)
@@ -325,6 +327,8 @@ if __name__ == "__main__":
     b, sv_count= compute_bias(alpha_i, X_train, y_train, C2, gaussian_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, gaussian_kernel)
     accuracy_gauss=accuracy_score(y_test, y_pred)
+    print(f'C: {C2}')
     print(f'Accuracy_gaussian: {accuracy_gauss:.4f}')
+    print(f'Number of support vectors: {sv_count}')
 
    
