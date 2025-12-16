@@ -103,19 +103,24 @@ def adjustment_algorithm(alpha_genes, y_train, C):
     return alpha.tolist()
 
 def compute_bias(alpha, X, y, C, kernel_func):
-    SV_indices = np.where((alpha > 0) & (alpha <= C))[0]
+    SV_indices = np.where((alpha > 0) & (alpha < C))[0]
 
     if len(SV_indices) == 0:
         return 0.0, 0
     
     #b=1/l sum(y_i-sum(y_i*alpha_j*<xi,xj>))
-    K=kernel_func(X,X)
+
+    if kernel_func==gaussian_kernel:
+        K=kernel_func(X, X, GAMMA)
+    else:
+        K=kernel_func(X, X)
+
     alpha_y=alpha*y
 
     sum= np.dot(K, alpha_y)
     y_SV= y[SV_indices]
     sum_SV=sum[SV_indices]
-    b=y_SV- sum
+    b=y_SV- sum_SV
     b=np.mean(b)
 
     return b, len(SV_indices)
