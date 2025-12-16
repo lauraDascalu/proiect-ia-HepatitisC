@@ -293,7 +293,8 @@ if __name__ == "__main__":
     #linear kernel
     K_matrix_lin = linear_kernel(X_train)
     #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
-    C=0.1
+    
+    C=0.5
 
     svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_lin)
     ea = EvolutionaryAlgorithm()
@@ -308,10 +309,15 @@ if __name__ == "__main__":
     accuracy_linear=accuracy_score(y_test, y_pred)
     print(f'Accuracy_linear: {accuracy_linear:.4f}')
 
+
     #gaussian kernel
     K_matrix_gauss = gaussian_kernel(X_train)
     #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
     #0.1
+    
+
+    #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, gaussian_kernel, n_splits=5)
+    #0.5
     
     svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_gauss)
     ea = EvolutionaryAlgorithm()
