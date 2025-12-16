@@ -71,6 +71,15 @@ def compute_bias(alpha, X, y, C, kernel_func):
     return b, len(SV_indices)
 
 
+#f(x)=sum(alpha_y * K(xi, x))+b
+def decision_function(X_test, X_train, y_train, alpha, b, kernel_func):
+    
+    K=kernel_func(X_test, X_train)
+    alpha_y=alpha*y_train
+
+    f=np.dot(K, alpha_y) + b
+    return np.sign(f)
+
 
 class IOptimizationProblem:
     def compute_fitness(self, chromosome):
