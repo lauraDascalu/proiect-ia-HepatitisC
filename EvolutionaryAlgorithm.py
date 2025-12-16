@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 
 GAMMA=0.001
 
-def cross_validate_c(X_train, y_train, C_values, n_splits=5, ea_params=None):
+def cross_validate_c(X_train, y_train, C_values, kernel_func, n_splits=5, ea_params=None):
     if ea_params is None:
         ea_params = {'POP_SIZE': 50, 'MAX_GEN': 30, 'C_RATE': 0.9, 'M_RATE': 0.1}
 
@@ -21,7 +21,11 @@ def cross_validate_c(X_train, y_train, C_values, n_splits=5, ea_params=None):
             X_fold_train, X_fold_val = X_train[train_index], X_train[val_index]
             y_fold_train, y_fold_val = y_train[train_index], y_train[val_index]
 
-            K_matrix_fold = gaussian_kernel(X_fold_train)
+            if kernel_func == gaussian_kernel:
+                K_matrix_fold = kernel_func(X_fold_train, gamma=GAMMA)
+            else:
+                K_matrix_fold = kernel_func(X_fold_train)
+
             svm_problem = SVM_GATE(X_fold_train, y_fold_train, C_val, K_matrix_fold)
             ea = EvolutionaryAlgorithm()
             solution = ea.solve(
@@ -33,19 +37,19 @@ def cross_validate_c(X_train, y_train, C_values, n_splits=5, ea_params=None):
             )
 
             alpha_i = np.array(solution.genes)
-            b, _ = compute_bias(alpha_i, X_fold_train, y_fold_train, C_val, gaussian_kernel)
-            y_pred = decision_function(X_fold_val, X_fold_train, y_fold_train, alpha_i, b, gaussian_kernel)
+            b, _ = compute_bias(alpha_i, X_fold_train, y_fold_train, C_val, kernel_func)
+            y_pred = decision_function(X_fold_val, X_fold_train, y_fold_train, alpha_i, b, kernel_func)
             acc = accuracy_score(y_fold_val, y_pred)
             fold_accuracies.append(acc)
 
         avg_accuracy = np.mean(fold_accuracies)
-        print(f"C={C_val:<5}: Acuratețe medie CV = {avg_accuracy:.4f} (+/- {np.std(fold_accuracies):.4f})")
+        print(f"C={C_val:<5}: Accuracy = {avg_accuracy:.4f}(Std deviation: {np.std(fold_accuracies):.4f})")
     
         if avg_accuracy > max_avg_accuracy:
             max_avg_accuracy = avg_accuracy
             best_c = C_val
 
-    print(f"\nCea mai bună valoare C selectată prin CV: {best_c} (Acuratețe: {max_avg_accuracy:.4f})")
+    print(f"Best C value: {best_c} (Accuracy: {max_avg_accuracy:.4f})")
     return best_c
 
 def linear_kernel(X, Z=None):
@@ -270,7 +274,7 @@ if __name__ == "__main__":
     M_RATE = 0.1  
 
     #C=1.0 #inital value
-    C=0.1
+    #C=0.1
 
     df = pd.read_csv("source/train_data.csv", index_col=0)
     X_train = df.drop(columns=['Category'])
@@ -283,13 +287,13 @@ if __name__ == "__main__":
     y_test=pd.read_csv("source/test_y.csv")
     X_test = X_test.values
     y_test = y_test = y_test['Category'].values.ravel()
+    
+    C_CANDIDATES = [0.1, 0.5, 1.0, 1.5, 2.0]
 
     #linear kernel
     K_matrix_lin = linear_kernel(X_train)
-    
-    C_CANDIDATES = [0.1, 1.0, 5.0, 10.0, 50.0]
-    #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, n_splits=5)
-    #C_OPTIMAL=0.1
+    #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
+    C=0.1
 
     svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_lin)
     ea = EvolutionaryAlgorithm()
@@ -306,6 +310,9 @@ if __name__ == "__main__":
 
     #gaussian kernel
     K_matrix_gauss = gaussian_kernel(X_train)
+    #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
+    #0.1
+    
     svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_gauss)
     ea = EvolutionaryAlgorithm()
 
