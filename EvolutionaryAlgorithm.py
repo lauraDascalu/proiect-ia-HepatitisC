@@ -293,10 +293,9 @@ if __name__ == "__main__":
     #linear kernel
     K_matrix_lin = linear_kernel(X_train)
     #C_OPTIMAL = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
-    
-    C=0.5
+    C1=0.1
 
-    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_lin)
+    svm_problem = SVM_GATE(X_train, y_train, C1, K_matrix_lin)
     ea = EvolutionaryAlgorithm()
 
     solution = ea.solve(svm_problem, POP_SIZE, MAX_GEN, C_RATE, M_RATE) 
@@ -304,7 +303,7 @@ if __name__ == "__main__":
     alpha_i=np.array(solution.genes)
     w=solution.fitness
 
-    b, sv_count= compute_bias(alpha_i, X_train, y_train, C, linear_kernel)
+    b, sv_count= compute_bias(alpha_i, X_train, y_train, C1, linear_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, linear_kernel)
     accuracy_linear=accuracy_score(y_test, y_pred)
     print(f'Accuracy_linear: {accuracy_linear:.4f}')
@@ -313,13 +312,9 @@ if __name__ == "__main__":
     #gaussian kernel
     K_matrix_gauss = gaussian_kernel(X_train)
     #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
-    #0.1
+    C2=0.5
     
-
-    #C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, gaussian_kernel, n_splits=5)
-    #0.5
-    
-    svm_problem = SVM_GATE(X_train, y_train, C, K_matrix_gauss)
+    svm_problem = SVM_GATE(X_train, y_train, C2, K_matrix_gauss)
     ea = EvolutionaryAlgorithm()
 
     solution = ea.solve(svm_problem, POP_SIZE, MAX_GEN, C_RATE, M_RATE) 
@@ -327,7 +322,7 @@ if __name__ == "__main__":
     alpha_i=np.array(solution.genes)
     w=solution.fitness
 
-    b, sv_count= compute_bias(alpha_i, X_train, y_train, C, gaussian_kernel)
+    b, sv_count= compute_bias(alpha_i, X_train, y_train, C2, gaussian_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, gaussian_kernel)
     accuracy_gauss=accuracy_score(y_test, y_pred)
     print(f'Accuracy_gaussian: {accuracy_gauss:.4f}')
