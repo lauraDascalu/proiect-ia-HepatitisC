@@ -313,7 +313,7 @@ if __name__ == "__main__":
 
     #gaussian kernel
     K_matrix_gauss = gaussian_kernel(X_train)
-    C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, linear_kernel, n_splits=5)
+    C_OPTIMAL2 = cross_validate_c(X_train, y_train, C_CANDIDATES, gaussian_kernel, n_splits=5)
     C2=0.5
     
     svm_problem = SVM_GATE(X_train, y_train, C2, K_matrix_gauss)
