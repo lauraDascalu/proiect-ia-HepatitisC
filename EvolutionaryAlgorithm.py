@@ -243,5 +243,7 @@ if __name__ == "__main__":
     b, sv_count= compute_bias(alpha_i, X_train, y_train, C, linear_kernel)
     y_pred= decision_function(X_test, X_train, y_train, alpha_i, b, linear_kernel)
    
+    accuracy=accuracy_score(y_test, y_pred)
+    print(f'Accuracy: {accuracy:.4f}')
 
    
