@@ -9,6 +9,23 @@ def linear_kernel(X, Z=None):
         return np.dot(X, X.T)
     else:
         return np.dot(X, Z.T)
+    
+
+def gaussian_kernel(X, Z=None, gamma=None):
+    
+    if gamma is None:
+        gamma = 1.0/X.shape[1]
+
+    if Z is None:
+        
+        sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * np.dot(X, X.T) + np.sum(X**2, axis=1) 
+        return np.exp(-gamma * sq_dists)
+   
+    else:
+
+        sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * np.dot(X, Z.T) + np.sum(Z**2, axis=1) 
+        return np.exp(-gamma * sq_dists)
+
 
 def adjustment_algorithm(alpha_genes, y_train, C):
    
